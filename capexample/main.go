@@ -13,8 +13,11 @@ import (
 	"net/http"
 	"strconv"
 	"text/template"
+	"time"
 
 	"captcha"
+
+	"github.com/zpatrick/go-config"
 )
 
 var formTemplate = template.Must(template.New("example").Parse(formTemplateSrc))
@@ -105,13 +108,31 @@ func verifyFormHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	iniFile := config.NewINIFile("config.ini")
+	c := config.NewConfig([]config.Provider{iniFile})
+	if err := c.Load(); err != nil {
+		panic("load config error")
+	}
+	expire, err := c.Int("global.expire")
+	if err != nil {
+		panic("get expire config error")
+	}
+	port, err := c.Int("global.port")
+	if err != nil {
+		panic("get port config error")
+	}
+	redisAddr, err := c.String("global.redisAddr")
+	if err != nil {
+		panic("get redisaddr config error")
+	}
+	captcha.SetCustomStore(captcha.NewRedisStore(redisAddr, "", 0, time.Duration(expire)*time.Minute))
 	http.HandleFunc("/", showFormHandler)
 	http.HandleFunc("/process", processFormHandler)
 	http.HandleFunc("/v1/captcha_id", getCaptchaFormHandler)
 	http.HandleFunc("/v1/verify", verifyFormHandler)
 	http.Handle("/v1/captcha/", captcha.Server(captcha.StdWidth, captcha.StdHeight))
-	fmt.Println("Server is at localhost:8666")
-	if err := http.ListenAndServe("localhost:8666", nil); err != nil {
+	fmt.Println("Server is at :" + strconv.Itoa(port))
+	if err := http.ListenAndServe(":"+strconv.Itoa(port), nil); err != nil {
 		log.Fatal(err)
 	}
 }

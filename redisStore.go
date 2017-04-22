@@ -19,12 +19,12 @@ type redisStore struct {
 	expiration time.Duration
 }
 
-func NewRedisStore(expiration time.Duration) Store {
+func NewRedisStore(addr string, password string, db int, expiration time.Duration) Store {
 	s := new(redisStore)
 	client := redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
-		Password: "", // no password set
-		DB:       0,  // use default DB
+		Addr:     addr,
+		Password: password, // no password set
+		DB:       db,       // use default DB
 
 	})
 	pong, err := client.Ping().Result()
