@@ -14,7 +14,7 @@ import (
 	"strconv"
 	"text/template"
 
-	"github.com/dchest/captcha"
+	"captcha"
 )
 
 var formTemplate = template.Must(template.New("example").Parse(formTemplateSrc))
@@ -107,9 +107,9 @@ func verifyFormHandler(w http.ResponseWriter, r *http.Request) {
 func main() {
 	http.HandleFunc("/", showFormHandler)
 	http.HandleFunc("/process", processFormHandler)
-	http.HandleFunc("/captcha_id", getCaptchaFormHandler)
-	http.HandleFunc("/verify", verifyFormHandler)
-	http.Handle("/captcha/", captcha.Server(captcha.StdWidth, captcha.StdHeight))
+	http.HandleFunc("/v1/captcha_id", getCaptchaFormHandler)
+	http.HandleFunc("/v1/verify", verifyFormHandler)
+	http.Handle("/v1/captcha/", captcha.Server(captcha.StdWidth, captcha.StdHeight))
 	fmt.Println("Server is at localhost:8666")
 	if err := http.ListenAndServe("localhost:8666", nil); err != nil {
 		log.Fatal(err)
